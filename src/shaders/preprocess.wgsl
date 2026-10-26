@@ -56,10 +56,17 @@ struct Gaussian {
 };
 
 struct Splat {
-    //TODO: store information for 2D splat rendering
+    pos_size: array<u32,2>,
+    color: array<u32,2>,
+    conic_opacity: array<u32,2>,
 };
 
 //TODO: bind your data here
+@group(0) @binding(0) var<uniform> camera: CameraUniforms;
+@group(0) @binding(1) var<uniform> render_settings: RenderSettings;
+@group(1) @binding(0) var<storage, read> gaussians: array<Gaussian>;
+@group(1) @binding(1) var<storage, read_write> splats: array<Splat>;
+
 @group(2) @binding(0)
 var<storage, read_write> sort_infos: SortInfos;
 @group(2) @binding(1)
@@ -114,5 +121,23 @@ fn preprocess(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgr
     //TODO: set up pipeline as described in instruction
 
     let keys_per_dispatch = workgroupSize * sortKeyPerThread; 
-    // increment DispatchIndirect.dispatchx each time you reach limit for one dispatch of keys
+    if (idx >= arrayLength(&gaussians)) { return; }
+let g = gaussians[idx];
+let a = unpack2x16float(g.pos_opacity[0]);
+let b = unpack2x16float(g.pos_opacity[1]);
+let view_pos = camera.view * vec4f(a.x, a.y, b.x, 1.0);
+let clip = camera.proj * view_pos;
+let ndc = clip.xyz / clip.w;
+if (view_pos.z < 0.2 || abs(ndc.x) > 1.2 || abs(ndc.y) > 1.2) { return; }
+
+let size = vec2f(0.005) * render_settings.gaussian_scaling;
+splats[idx].pos_size[0] = pack2x16float(ndc.xy);
+splats[idx].pos_size[1] = pack2x16float(size);
+
+let slot = atomicAdd(&sort_infos.keys_size, 1u);
+sort_depths[slot] = bitcast<u32>(100.0 - view_pos.z);
+sort_indices[slot] = idx;
+if (slot % keys_per_dispatch == 0u) {
+    atomicAdd(&sort_dispatch.dispatch_x, 1u);
+}
 }
