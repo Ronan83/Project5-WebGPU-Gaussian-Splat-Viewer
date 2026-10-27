@@ -83,6 +83,7 @@ const gaussian_bind_group = device.createBindGroup({
   entries: [
     { binding: 0, resource: { buffer: pc.gaussian_3d_buffer } },
     { binding: 1, resource: { buffer: splat_buffer } },
+    { binding: 2, resource: { buffer: pc.sh_buffer } },
   ],
 });
 
