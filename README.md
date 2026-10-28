@@ -45,10 +45,32 @@ frame time. The measurements are samples of the existing FPS display rather
 than isolated GPU preprocessing timings or averages over every rendered frame.
 
 The sorting capacity was held at 3840 keys per dispatch. Frustum culling was
-enabled in all three workgroup-size measurements. The current temporary
-culling comparison changes are a separate experiment.
+enabled in all three workgroup-size measurements.
 
 See the [full explanation, raw readings, and screenshots](analysis/workgroup-size/README.md).
+
+#### 3. View-frustum culling
+
+Using the same bicycle scene, camera preset 0, scaling 1.00, workgroup size
+256, and 1283 × 741 canvas, I compared the screen-space culling check with
+that check disabled. Near-camera rejection remained enabled in both cases.
+After approximately five seconds of warm-up per run, I sampled the existing
+instantaneous FPS display 41 times at approximately 0.5-second intervals.
+
+| Screen-space culling | Median displayed FPS | Observed range |
+| --- | ---: | ---: |
+| Disabled | 149.25 | 126.58–172.41 |
+| Enabled | 149.25 | 129.87–172.41 |
+
+This viewpoint showed no clear performance improvement: the sampled medians
+were identical and the ranges substantially overlapped. Culling can avoid
+downstream preprocessing, sorting, and submitted rendering work for rejected
+Gaussians, but its benefit depends on the viewpoint and remaining costs.
+Surviving counts and per-pass GPU timings were not measured, so the cause of
+this small difference is not established. These short runs do not imply that
+culling is ineffective in general. The final code has culling enabled.
+
+See the [full explanation, raw readings, and screenshots](analysis/frustum-culling/README.md).
 
 ### Credits
 
