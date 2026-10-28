@@ -8,7 +8,14 @@ An interactive browser renderer for pretrained 3D Gaussian scenes, implemented
 in TypeScript and WGSL. It projects Gaussian distributions to screen-space
 ellipses, sorts them by depth on the GPU, and alpha-blends their contributions.
 
-![Bicycle rendered in the original local Viewer](analysis/gaussian-count/count-100.png)
+| Bicycle | Bonsai |
+| --- | --- |
+| ![Bicycle rendered in the original local Viewer](analysis/gaussian-count/count-100.png) | ![Bonsai rendered with the camera view leveled and centered](images/bonsai-upright.png) |
+
+Both images are actual local Viewer captures. Bicycle contains 1,063,091
+Gaussians; bonsai contains 272,956. The bonsai view was manually framed and
+leveled using the existing camera controls; its screenshot is a visual check,
+not a performance measurement.
 
 [Live viewer](https://ronan83.github.io/Project5-WebGPU-Gaussian-Splat-Viewer/) ·
 [42-second demonstration video](public/demo.mp4)
@@ -25,6 +32,11 @@ Open the local URL printed by Vite in a WebGPU-capable browser. Download the
 then use the panel to select a Gaussian PLY and its matching cameras.json.
 Select **gaussian** to view splats or **pointcloud** for the yellow-dot baseline.
 Large scene files are excluded from version control.
+
+For the flower-and-table scene, select `bonsai.ply` and the `cameras.json` from
+the **bonsai** folder. Its 292 camera presets differ from the bicycle presets.
+The initial bonsai view may be close to the table; use the mouse wheel and
+camera controls to frame the full scene, and Q/E to adjust roll.
 
 ### Controls
 
