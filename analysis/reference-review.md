@@ -23,7 +23,7 @@ to use this repository's own implementation and the course-provided radix sorter
 
 ## Remaining work
 
-- Verify the public Pages deployment; the expected URL returned HTTP 404.
-- Record a 30+ second video showing the existing features.
+- Public Pages deployment and a 42-second demonstration video are now complete;
+  see the main README and [verification notes](demo/README.md).
 - For stronger performance conclusions, add repeated runs, other viewpoints,
   and optionally GPU stage timing through an independently designed implementation.

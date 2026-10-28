@@ -10,6 +10,9 @@ ellipses, sorts them by depth on the GPU, and alpha-blends their contributions.
 
 ![Bicycle rendered in the original local Viewer](analysis/gaussian-count/count-100.png)
 
+[Live viewer](https://ronan83.github.io/Project5-WebGPU-Gaussian-Splat-Viewer/) ·
+[42-second demonstration video](public/demo.mp4)
+
 ## Run locally
 
 ```sh
@@ -164,15 +167,32 @@ coverage and fine detail, so the speed comparison comes with a quality tradeoff.
 
 See the [sampling method, image comparison, raw data, and reproduction command](analysis/gaussian-count/README.md).
 
-## Demo and remaining deliverables
+## Live demo and video
 
-Local runtime and the production build have been verified. The expected
-[GitHub Pages URL](https://ronan83.github.io/Project5-WebGPU-Gaussian-Splat-Viewer/)
-returned HTTP 404 when checked during this work; public deployment still needs
-verification. The repository includes a Pages deployment workflow.
+The [online Viewer](https://ronan83.github.io/Project5-WebGPU-Gaussian-Splat-Viewer/)
+has been deployed through GitHub Actions and verified by loading the full bicycle
+PLY and its camera file in Chrome, selecting Gaussian rendering, and checking
+the rendered image and browser logs. Scene files are selected locally and are
+not included in the hosted bundle.
 
-A 30+ second demonstration video is still to be recorded. The screenshots
-above are actual local Viewer captures, not substitutes for that video.
+[Watch the 42-second demonstration](public/demo.mp4), or open the
+[hosted MP4](https://ronan83.github.io/Project5-WebGPU-Gaussian-Splat-Viewer/demo.mp4).
+It is a silent recording of the original local Viewer at 1280 × 740 and 30 FPS.
+
+| Time | Demonstrated behavior |
+| --- | --- |
+| 0:00–0:06 | Full-scene Gaussian rendering |
+| 0:06–0:12 | Point-cloud baseline |
+| 0:12–0:17 | Return to Gaussian rendering |
+| 0:17–0:22 | Gaussian scale 0.50 |
+| 0:22–0:27 | Gaussian scale 1.50 |
+| 0:27–0:32 | Scale 1.00 and camera preset 1 |
+| 0:32–0:37 | Camera preset 2 |
+| 0:37–0:42 | Return to camera preset 0 |
+
+The FPS monitor in the video is affected by recording overhead and is not used
+as performance-analysis data. See [demo and deployment verification](analysis/demo/README.md)
+for the capture method and deployment evidence.
 
 ### Credits
 
