@@ -1,8 +1,9 @@
 # WebGPU 3D Gaussian Splat Viewer
 
-**University of Pennsylvania · CIS 565 · Project 5**
+**University of Pennsylvania, CIS 5650: GPU Programming and Architecture, Project 5**
 
-**Xuan Zhu**
+* Xuan Zhu
+* Tested on: Google Chrome 155 on Windows 11, AMD Ryzen AI 7 350, 32 GB RAM, NVIDIA GeForce RTX 5070 Laptop GPU (personal laptop)
 
 An interactive browser renderer for pretrained 3D Gaussian scenes, implemented
 in TypeScript and WGSL. It projects Gaussian distributions to screen-space
