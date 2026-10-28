@@ -11,7 +11,7 @@ ellipses, sorts them by depth on the GPU, and alpha-blends their contributions.
 
 | Bicycle | Bonsai |
 | --- | --- |
-| ![Bicycle rendered in the original local Viewer](analysis/gaussian-count/count-100.png) | ![Bonsai rendered with the camera view leveled and centered](images/bonsai-upright.png) |
+| ![Bicycle rendered in the original local Viewer](images/1.jpg) | ![Bonsai rendered with the camera view leveled and centered](images/2.jpg) |
 
 Both images are actual local Viewer captures. Bicycle contains 1,063,091
 Gaussians; bonsai contains 272,956. The bonsai view was manually framed and
@@ -103,7 +103,7 @@ presentation limits prevent a precise GPU cost ratio from these readings.
 
 | Point cloud | Gaussian splats |
 | --- | --- |
-| ![Point cloud](analysis/renderers/renderer-pointcloud.png) | ![Gaussian](analysis/gaussian-count/count-100.png) |
+| ![Point cloud](images/3.jpg) | ![Gaussian](images/4.jpg) |
 
 [Point-cloud raw readings](analysis/renderers/renderer-pointcloud.json) ·
 [Gaussian raw readings](analysis/gaussian-count/count-100.json)
