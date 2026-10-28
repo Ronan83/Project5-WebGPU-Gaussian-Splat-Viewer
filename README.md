@@ -1,30 +1,98 @@
-# Project5-WebGPU-Gaussian-Splat-Viewer
+# WebGPU 3D Gaussian Splat Viewer
 
-**University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
+**University of Pennsylvania · CIS 565 · Project 5**
 
-* (TODO) YOUR NAME HERE
-* Tested on: (TODO) **Google Chrome 222.2** on
-  Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
+**Xuan Zhu**
 
-### Live Demo
+An interactive browser renderer for pretrained 3D Gaussian scenes, implemented
+in TypeScript and WGSL. It projects Gaussian distributions to screen-space
+ellipses, sorts them by depth on the GPU, and alpha-blends their contributions.
 
-[![](img/thumb.png)](http://TODO.github.io/Project4-WebGPU-Forward-Plus-and-Clustered-Deferred)
+![Bicycle rendered in the original local Viewer](analysis/gaussian-count/count-100.png)
 
-### Demo Video/GIF
+## Run locally
 
-[![](img/video.mp4)](TODO)
+```sh
+npm ci
+npm run dev
+```
 
-### (TODO: Your README)
+Open the local URL printed by Vite in a WebGPU-capable browser. Download the
+[course scene files](https://drive.google.com/drive/folders/1Fz0QhyDU12JTsl2e7umGi5iy_V9drrIW?usp=sharing),
+then use the panel to select a Gaussian PLY and its matching cameras.json.
+Select **gaussian** to view splats or **pointcloud** for the yellow-dot baseline.
+Large scene files are excluded from version control.
 
-*DO NOT* leave the README to the last minute! It is a crucial part of the
-project, and we will not be able to grade you without a good README.
+### Controls
 
-This assignment has a considerable amount of performance analysis compared
-to implementation work. Complete the implementation early to leave time!
+| Input | Action |
+| --- | --- |
+| Left drag | Rotate camera |
+| Right drag | Pan camera |
+| Mouse wheel | Move along viewing direction |
+| 0–9 | Select a loaded camera preset |
+| Q / E | Roll camera |
+| gaussian_multiplier | Adjust Gaussian scale |
 
-### Performance Analysis
+## Implemented features
 
-#### 2. Preprocessing workgroup size
+- Point-cloud rendering with view and projection transforms.
+- 3D covariance reconstructed from Gaussian rotation and log-scale values.
+- Perspective projection to 2D covariance, conic inversion, and three-sigma quad extents.
+- Near-camera rejection and padded screen-space culling.
+- View-dependent spherical-harmonics color and sigmoid opacity.
+- GPU atomic compaction, the supplied GPU radix sorter, and indirect instanced drawing.
+- Gaussian opacity falloff and alpha blending.
+- Deterministic PLY subset generation for repeatable count experiments.
+
+Each Gaussian frame follows **preprocess → depth sort → indirect quad rendering**.
+Packed storage uses f16 values; the projection calculations use f32.
+
+## Measurement setup
+
+Verified locally with Chrome **156.0.8078.48**, Windows 11 Home, and an AMD Ryzen
+AI 7 350 machine with NVIDIA GeForce RTX 5070 Laptop GPU and AMD integrated
+graphics available. The application requests a high-performance WebGPU adapter;
+these measurements do not independently identify the selected adapter.
+
+All recorded comparisons use bicycle camera preset 0, scale 1.00, and a
+**1283 × 741** canvas. The PLY filename contains “30000”, but the full file
+actually has **1,063,091 Gaussians**. Workgroup size is 256 and culling is enabled
+unless a particular experiment changes one of them.
+
+The tables summarize sampled readings from the existing **instantaneous FPS
+display**. They are not complete-run average frame rates or GPU pass timings.
+Each run includes approximately five seconds of warm-up. Raw readings and
+screenshots are linked with each experiment. Short-run variability limits
+conclusions about small differences.
+
+## Performance analysis
+
+### 1. Point cloud versus Gaussian rendering
+
+Both modes were measured on the same full scene and camera, with 41 displayed
+FPS samples per mode after warm-up.
+
+| Renderer | Median displayed FPS | Observed range |
+| --- | ---: | ---: |
+| Point cloud | 163.93 | 158.73–172.41 |
+| Gaussian | 151.52 | 125.00–192.31 |
+
+Point-cloud mode shows separated yellow samples and gaps. Gaussian rendering
+adds colored, overlapping ellipses with soft edges, producing more continuous
+surfaces. It also performs covariance projection, evaluates view-dependent
+color, sorts depth keys, and blends fragments over the projected quads. The
+Gaussian run had a lower sampled median here; overlapping ranges and possible
+presentation limits prevent a precise GPU cost ratio from these readings.
+
+| Point cloud | Gaussian splats |
+| --- | --- |
+| ![Point cloud](analysis/renderers/renderer-pointcloud.png) | ![Gaussian](analysis/gaussian-count/count-100.png) |
+
+[Point-cloud raw readings](analysis/renderers/renderer-pointcloud.json) ·
+[Gaussian raw readings](analysis/gaussian-count/count-100.json)
+
+### 2. Preprocessing workgroup size
 
 The original local Viewer was tested with 1,063,091 Gaussians from
 `bicycle_30000.cleaned.ply`, camera preset 0, Gaussian scaling 1.00, and a
@@ -49,7 +117,7 @@ enabled in all three workgroup-size measurements.
 
 See the [full explanation, raw readings, and screenshots](analysis/workgroup-size/README.md).
 
-#### 3. View-frustum culling
+### 3. View-frustum culling
 
 Using the same bicycle scene, camera preset 0, scaling 1.00, workgroup size
 256, and 1283 × 741 canvas, I compared the screen-space culling check with
@@ -72,6 +140,40 @@ culling is ineffective in general. The final code has culling enabled.
 
 See the [full explanation, raw readings, and screenshots](analysis/frustum-culling/README.md).
 
+### 4. Gaussian count
+
+The same scene was sampled by retaining every fourth or second complete PLY
+record, preserving all attributes of each retained Gaussian. The renderer and
+camera remained unchanged. Each setting has 41 instantaneous FPS readings.
+
+| Input fraction | Gaussian count | Median displayed FPS | Observed range |
+| --- | ---: | ---: | ---: |
+| ~25% | 265,773 | 163.93 | 158.73–172.41 |
+| ~50% | 531,546 | 163.93 | 161.29–172.41 |
+| 100% | 1,063,091 | 151.52 | 125.00–192.31 |
+
+![Count experiment: raw displayed FPS samples and medians](analysis/gaussian-count/gaussian-count-performance.png)
+
+The smaller subsets had medians about 8.2% above the full scene in this run,
+but reducing the count from half to quarter did not improve the sampled median.
+The ranges overlap. A presentation or CPU limit could explain the plateau,
+but this experiment did not isolate that cause. More input Gaussians increase
+preprocessing work; surviving Gaussians add sorting and quad work. Fragment
+cost also depends on projected area and overlap. Lower counts reduce surface
+coverage and fine detail, so the speed comparison comes with a quality tradeoff.
+
+See the [sampling method, image comparison, raw data, and reproduction command](analysis/gaussian-count/README.md).
+
+## Demo and remaining deliverables
+
+Local runtime and the production build have been verified. The expected
+[GitHub Pages URL](https://ronan83.github.io/Project5-WebGPU-Gaussian-Splat-Viewer/)
+returned HTTP 404 when checked during this work; public deployment still needs
+verification. The repository includes a Pages deployment workflow.
+
+A 30+ second demonstration video is still to be recorded. The screenshots
+above are actual local Viewer captures, not substitutes for that video.
+
 ### Credits
 
 - [Vite](https://vitejs.dev/)
@@ -79,3 +181,10 @@ See the [full explanation, raw readings, and screenshots](analysis/frustum-culli
 - [stats.js](https://github.com/mrdoob/stats.js)
 - [wgpu-matrix](https://github.com/greggman/wgpu-matrix)
 - Special Thanks to: Shrek Shao (Google WebGPU team) & [Differential Guassian Renderer](https://github.com/graphdeco-inria/diff-gaussian-rasterization)
+
+### Presentation references
+
+The [reference review notes](analysis/reference-review.md) identify the PRs and
+README sections reviewed for presentation and experimental-design ideas.
+The measurements, explanations, sampling utility, and screenshots here were
+produced for this repository. No peer renderer implementation was imported.
