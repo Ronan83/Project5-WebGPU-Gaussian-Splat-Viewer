@@ -97,7 +97,21 @@ const render_pipeline = device.createRenderPipeline({
   layout: 'auto',
   vertex: { module: render_module, entryPoint: 'vs_main' },
   fragment: { module: render_module, entryPoint: 'fs_main',
-              targets: [{ format: presentation_format }] },
+              targets: [{
+  format: presentation_format,
+  blend: {
+    color: {
+      srcFactor: 'src-alpha',
+      dstFactor: 'one-minus-src-alpha',
+      operation: 'add',
+    },
+    alpha: {
+      srcFactor: 'one',
+      dstFactor: 'one-minus-src-alpha',
+      operation: 'add',
+    },
+  },
+}] },
   primitive: { topology: 'triangle-list' },
 });
 const render_bind_group = device.createBindGroup({

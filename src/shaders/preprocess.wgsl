@@ -247,7 +247,21 @@ let color = computeColorFromSH(
 
 // Store RGB as packed f16 values.
 splats[idx].color[0] = pack2x16float(color.rg);
-splats[idx].color[1] = pack2x16float(vec2f(color.b, 0.0));
+splats[idx].color[1] = pack2x16float(vec2f(color.b, radius));
+
+let det = covXX * covYY - covXY * covXY;
+if (!(det > 0.0)) {
+    return;
+}
+
+let conic = vec3f(covYY, -covXY, covXX) / det;
+
+let opacity = 1.0 / (1.0 + exp(-b.y));
+
+splats[idx].conic_opacity[0] = pack2x16float(conic.xy);
+splats[idx].conic_opacity[1] = pack2x16float(
+    vec2f(conic.z, opacity)
+);
 
 let slot = atomicAdd(&sort_infos.keys_size, 1u);
 sort_depths[slot] = bitcast<u32>(100.0 - view_pos.z);
