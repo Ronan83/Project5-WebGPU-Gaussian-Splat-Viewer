@@ -187,7 +187,9 @@ let b = unpack2x16float(g.pos_opacity[1]);
 let view_pos = camera.view * vec4f(a.x, a.y, b.x, 1.0);
 let clip = camera.proj * view_pos;
 let ndc = clip.xyz / clip.w;
-if (view_pos.z < 0.2 || abs(ndc.x) > 1.2 || abs(ndc.y) > 1.2) { return; }
+// Temporarily disable screen-space frustum culling for the performance comparison.
+// Keep the near-camera rejection to avoid projecting points behind the camera.
+if (view_pos.z < 0.2) { return; }
 
 // Transform the covariance from world space to camera space.
 let viewRotation = mat3x3f(
